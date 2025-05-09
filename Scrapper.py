@@ -3,12 +3,12 @@ import os
 import time
 import requests
 from bs4 import BeautifulSoup
-import smtplib
+import smtplib, ssl
 from email.mime.text import MIMEText
 
 # ─── CONFIG ──────────────────────────────────────────────────────────
 EMAIL_ADDRESS = "internshipnotifications7@gmail.com"
-EMAIL_PASSWORD = "nweh agmg ymeu dzjq"
+EMAIL_PASSWORD = "bbcl giix mcax nmvp"
 TO_EMAIL      = "officialjelb@gmail.com"
 
 SEEN_FILE     = "seen_jobs.txt"
@@ -102,7 +102,19 @@ US_LOCATIONS = [
     'TX','CA','NY','AZ','IL','FL','WA','MA','PA','GA','OH','NC','MI','NJ','VA',
     'CO','TN','MO','IN','MD','WI','MN','SC','AL','LA','KY','OR','OK','CT','IA',
     'UT','NV','KS','NM','NE','WV','ID','HI','ME','NH','RI','MT','DE','SD','ND',
-    'VT','WY','AR','MS'
+    'VT','WY','AR','MS', 'alabama','alaska','arizona','arkansas','california','colorado',
+    'connecticut','delaware','florida','georgia','hawaii','idaho',
+    'illinois','indiana','iowa','kansas','kentucky','louisiana','maine',
+    'maryland','massachusetts','michigan','minnesota','mississippi',
+    'missouri','montana','nebraska','nevada','new hampshire','new jersey',
+    'new mexico','new york','north carolina','north dakota','ohio','oklahoma',
+    'oregon','pennsylvania','rhode island','south carolina','south dakota',
+    'tennessee','texas','utah','vermont','virginia','washington',
+    'west virginia','wisconsin','wyoming',
+    
+    # Major cities with tech hubs
+    'new york city','san francisco','seattle','austin','boston','chicago',
+    'los angeles','atlanta','denver','dallas','research triangle park'
 ]
 
 # ─── EMAIL ───────────────────────────────────────────────────────────
@@ -111,7 +123,9 @@ def send_email(subject, body):
     msg['Subject'] = subject
     msg['From']    = EMAIL_ADDRESS
     msg['To']      = TO_EMAIL
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as s:
+    context = ssl.create_default_context()
+    
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as s:
         s.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
         s.send_message(msg)
 
@@ -147,14 +161,21 @@ def scrape_linkedin():
                       card.find('span', class_='job-result-card__location'))
             loc = loc_el.get_text(strip=True) if loc_el else ''
 
-            print(f"🔹 {title} | {loc}\n🔗 {link}\n")
+            print(f"🔹 {title} | {loc}\n🔗 {link}")
 
-            if not any(code in loc for code in US_LOCATIONS):
+            loc_lower = loc.strip().lower()
+            if not any(loc_key in loc_lower for loc_key in US_LOCATIONS):
+                print(f"🚫 Location filter: {loc}\n")
                 continue
-            if not any(k.lower() in title.lower() for k in KEYWORDS):
+            
+            # Case-insensitive keyword check
+            title_lower = title.lower()
+            if not any(k.lower() in title_lower for k in KEYWORDS):
+                print(f"🚫 Keyword filter: {title}\n")
                 continue
 
             results.append((title, link, loc))
+            print(f"✅✅✅  Description Matched!!\n")
         time.sleep(1)
     return results, all_links
 
@@ -170,7 +191,7 @@ def check_and_notify():
             new_jobs.append(job)
 
     # Update seen file with all unique job links seen
-    seen.update(all_links)
+    seen.update(link for title, link, loc in scraped_jobs)
     save_seen(seen)
 
     if new_jobs:
