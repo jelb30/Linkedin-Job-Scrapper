@@ -6,11 +6,11 @@ Automatically scrape LinkedIn for new internship opportunities in software, data
 
 ## Features
 
-- 🔍 **Automated LinkedIn Scraping:** Checks for new jobs every 10 minutes.
-- 📧 **Email Notifications:** Get notified instantly when a new relevant internship is posted.
-- 🗂️ **Duplicate Detection:** Never receive the same job twice-tracks all seen jobs.
-- 🔑 **Customizable Filters:** Easily change keywords and locations to match your interests.
-- 🛡️ **Secure Email Sending:** Uses SSL and supports Gmail App Passwords.
+-  **Automated LinkedIn Scraping:** Checks for new jobs every 10 minutes.
+-  **Email Notifications:** Get notified instantly when a new relevant internship is posted.
+-  **Duplicate Detection:** Never receive the same job twice-tracks all seen jobs.
+-  **Customizable Filters:** Easily change keywords and locations to match your interests.
+-  **Secure Email Sending:** Uses SSL and supports Gmail App Passwords.
 
 ---
 
