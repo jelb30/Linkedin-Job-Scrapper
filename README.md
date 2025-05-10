@@ -27,8 +27,11 @@ Automatically scrape LinkedIn for new internship opportunities in software, data
 ## Installation
 
 1. **Clone this repository:**
-git clone https://github.com/jelb30/Linkedin-Job-Scrapper.git
-cd Linkedin-Job-Scrapper
+Clone this repository:
+   ```sh
+   git clone https://github.com/jelb30/Linkedin-Job-Scrapper.git
+   cd Linkedin-Job-Scrapper
+   ```
 
 ## Usage
 
@@ -64,3 +67,6 @@ This script is for educational and personal use only.
 - Respect LinkedIn’s [Terms of Service](https://www.linkedin.com/legal/user-agreement).
 - Excessive scraping may result in your IP/account being blocked.
 
+## Future Improvments
+
+We can different keyword matching algorithms for better performance and efficient job filtering. Like Regex, Fuzzy Matching, Token Matching and Semantic Matching.
