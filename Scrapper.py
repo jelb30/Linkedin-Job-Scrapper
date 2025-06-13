@@ -57,12 +57,14 @@ def scrape_linkedin():
         for card in cards:
             a = card.select_one('a.base-card__full-link')
             if not a:
+                time.sleep(10)
                 continue
             title = a.get_text(strip=True)
             link = a['href'].split('?')[0]
             all_links.add(link)
             
             if link in ALREADY_SEEN:
+                time.sleep(10)
                 continue
             
             ALREADY_SEEN.append(link)
@@ -80,10 +82,12 @@ def scrape_linkedin():
             title_lower = title.lower()
             if not any(k.lower() in title_lower for k in KEYWORDS):
                 print(f"🚫 Keyword filter: {title}\n")
+                time.sleep(10)
                 continue
 
             results.append((title, link, loc))
             print(f"\n\n✅ ✅ Description Matched!!\n")
+            time.sleep(10)
         time.sleep(10)
     return results, all_links
 
