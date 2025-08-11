@@ -1,4 +1,3 @@
-# job_filters.py
 import re
 
 # --- Include phrases (full-time roles only) ---
@@ -28,7 +27,7 @@ INCLUDE_RE = re.compile(r"\b(?:" + r"|".join(_INCLUDE_PHRASES) + r")\b", re.I)
 _EXCLUDE_PHRASES = [
     r"\b(intern|internship|co[ -]?op|campus\s+hire|summer|fall|winter|spring)\b",
     # Add/keep noisy aggregators if you want to filter them out
-    r"\b(ripplematch|dice|handshake|wayup)\b",
+    r"\b(ripplematch|dice|handshake|wayup|lensa)\b",
     # Optional: uncomment to avoid senior/lead roles
     # r"\b(senior|sr\.?|staff|principal|lead|manager|director|architect|head|vp|chief)\b",
 ]
