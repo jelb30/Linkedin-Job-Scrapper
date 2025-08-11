@@ -1,27 +1,26 @@
-
-import os
+import os, tempfile
+import random
 import time
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
 import smtplib, ssl
 from email.mime.text import MIMEText
+from dotenv import load_dotenv
+from requests.adapters import HTTPAdapter
+import random
+from job_keywords import KEYWORDS_LC, BLOCKED_LC
+from job_filters import is_relevant_title
 
 # ─── CONFIG ──────────────────────────────────────────────────────────
-EMAIL_ADDRESS = ""
-EMAIL_PASSWORD = "" #USE APP PASSWORD SETUP FOR GMAIL TO USE SMTP. 
-TO_EMAIL      = ""
+load_dotenv()
+
+EMAIL_ADDRESS = os.getenv("JOBBOT_EMAIL")
+EMAIL_PASSWORD = os.getenv("JOBBOT_APP_PASSWORD")
+TO_EMAIL = os.getenv("JOBBOT_TO", EMAIL_ADDRESS)
 
 SEEN_FILE     = "seen_jobs.txt"
-ALREADY_SEEN = []
+ALREADY_SEEN = set()
 PAGES_TO_SCRAPE = 3  # each page ~25 jobs
-
-KEYWORDS = [
-    #Job specific keywords, take full job dexcrition like Software Develper.
-]
-
-LOCATIONS = [
-    #Locations to filter out jobs.
-]
 
 # ─── EMAIL ───────────────────────────────────────────────────────────
 def send_email(subject, body):
@@ -40,34 +39,43 @@ def load_seen() -> set:
     return set(open(SEEN_FILE, "r").read().splitlines()) if os.path.exists(SEEN_FILE) else set()
 
 def save_seen(seen: set):
-    with open(SEEN_FILE, "w") as f:
-        f.write("\n".join(sorted(seen)))
+    fd, tmp = tempfile.mkstemp(prefix="seen_", text=True)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write("\n".join(sorted(seen)))
+        os.replace(tmp, SEEN_FILE)
+    finally:
+        try: os.remove(tmp)
+        except OSError: pass
 
 # ─── SCRAPER ─────────────────────────────────────────────────────────
 def scrape_linkedin():
     headers = {'User-Agent': 'Mozilla/5.0'}
+    base = f'https://www.linkedin.com/jobs/search/?currentJobId=4248921872&f_E=1%2C2&f_JT=F%2CI&f_TPR=r3600&geoId=103644278&keywords=software%20engineer%20OR%20software%20developer%20OR%20data%20analyst%20OR%20data%20engineer%20OR%20cloud%20engineer%20OR%20devops%20engineer&location=United%20States&origin=JOB_SEARCH_PAGE_JOB_FILTER&sortBy=DD'
     results = []
     all_links = set()
     for i in range(PAGES_TO_SCRAPE):
-        url = f'https://www.linkedin.com/jobs/search/?f_E=1%2C2&f_JT=I&f_TPR=r3600&geoId=103644278&keywords=intern&location=United%20States&sortBy=DD&start={i*25}'
+        url = base + (f"&start={i*25}" if i else "")
         res = requests.get(url, headers=headers)
+        
         soup = BeautifulSoup(res.text, 'html.parser')
         cards = soup.find_all('div', class_='base-card')
         print(f"[DEBUG] Page {i+1}: found {len(cards)} job cards")
+        
         for card in cards:
-            a = card.select_one('a.base-card__full-link')
+            a = (card.select_one("a.base-card__full-link")
+                 or card.find("a", href=lambda h: h and "/jobs/view/" in h))
             if not a:
-                time.sleep(10)
                 continue
             title = a.get_text(strip=True)
-            link = a['href'].split('?')[0]
+            link = a["href"].partition("?")[0]
             all_links.add(link)
             
             if link in ALREADY_SEEN:
-                time.sleep(10)
                 continue
             
-            ALREADY_SEEN.append(link)
+            ALREADY_SEEN.add(link)
+            all_links.add(link)
 
             loc_el = (card.select_one('span.job-search-card__location') or
                       card.select_one('span.base-search-card__location') or
@@ -76,19 +84,17 @@ def scrape_linkedin():
 
             print(f"💼 {title} | {loc}\n🌐 {link}")
             
-            # CAN USE LOCATION FILTER HERE AS WELL FOR SPECIFIC LOCATIONS.  
-            
             # Case-insensitive keyword check
             title_lower = title.lower()
-            if not any(k.lower() in title_lower for k in KEYWORDS):
-                print(f"🚫 Keyword filter: {title}\n")
-                time.sleep(10)
+            if not is_relevant_title(title):
+                print(f"🚫 Filtered by regex: {title}\n")
                 continue
-
+            
             results.append((title, link, loc))
             print(f"\n\n✅ ✅ Description Matched!!\n")
-            time.sleep(10)
-        time.sleep(10)
+            
+        time.sleep(0.7 + random.random() * 0.8)
+        
     return results, all_links
 
 # ─── MAIN CHECK ──────────────────────────────────────────────────────
@@ -108,10 +114,9 @@ def check_and_notify():
 
     if new_jobs:
         body = "\n\n".join([f"{t}\n{l}\nLocation: {loc}" for t, l, loc in new_jobs])
-        send_email("📬 New LinkedIn Internship Listings", body)
+        send_email("📬 New Jobs Listings", body)
         print(' ──────────────────────────────────────────────────────── SEND ────────────────────────────────────────────────────────')
-        print(f"✅✅✅  Sent {len(new_jobs)} new jobs via email.")
-        print(' ──────────────────────────────────────────────────────── SEND ────────────────────────────────────────────────────────\n')
+        print(f"✅✅  Sent {len(new_jobs)} new jobs via email.")
     else:
         print("🔍 No new keyword-matched jobs found.")
 
