@@ -14,8 +14,7 @@ _INCLUDE_PHRASES = [
     r"business\s+analyst",
     r"data\s+visualization\s+engineer",
     r"cloud\s+(?:engineer|developer|infrastructure\s+engineer)",
-    r"devops\s+engineer",
-    r"(?:site\s+reliability\s+engineer|sre)",
+    r"devops\s+engineer",,
     r"(?:mlops|machine\s+learning|ml)\s+engineer",
     r"(?:ai|applied)\s+(?:engineer|scientist)",
 ]
