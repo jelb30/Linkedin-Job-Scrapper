@@ -21,6 +21,7 @@ Automatically scrape LinkedIn for new internship opportunities in software, data
 - The following Python packages:
   - `requests`
   - `beautifulsoup4`
+  - `dotend`
 
 ---
 
