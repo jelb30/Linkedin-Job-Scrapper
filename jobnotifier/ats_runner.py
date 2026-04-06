@@ -18,7 +18,7 @@ from .job_runtime import (
 from .job_sources import scrape_direct_ats_jobs
 
 
-ATS_CHECK_INTERVAL_SECONDS = parse_int(os.getenv("ATS_CHECK_INTERVAL_SECONDS"), 600)
+ATS_CHECK_INTERVAL_SECONDS = parse_int(os.getenv("ATS_CHECK_INTERVAL_SECONDS"), 1200)
 ATS_MAX_AGE_HOURS = parse_int(os.getenv("ATS_MAX_AGE_HOURS"), 72)
 
 

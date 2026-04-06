@@ -17,7 +17,7 @@ from .job_sources import scrape_linkedin_jobs
 
 
 PAGES_TO_SCRAPE = parse_int(os.getenv("LINKEDIN_PAGES_TO_SCRAPE"), 5)
-CHECK_INTERVAL_SECONDS = parse_int(os.getenv("CHECK_INTERVAL_SECONDS"), 180)
+CHECK_INTERVAL_SECONDS = parse_int(os.getenv("CHECK_INTERVAL_SECONDS"), 1200)
 
 
 def check_and_notify(include_india=False):
