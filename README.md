@@ -1,54 +1,89 @@
 # LinkedIn and ATS Job Scrapers
 
-Local Python scrapers for finding recent software, data, infrastructure, and SRE jobs and emailing new matches.
+Automated local job scrapers built to solve a practical problem: finding fresh software, data, infrastructure, and SRE jobs as early as possible without manually refreshing LinkedIn and company career pages all day.
 
-This project has two main sources:
+This project was designed and coded around a real job-search workflow. Instead of relying on one source, it combines:
 
-- LinkedIn search pages
-- Direct ATS job boards such as Greenhouse, Ashby, Lever, SmartRecruiters, and Workable
+- LinkedIn search scraping for broad discovery
+- Direct ATS board scraping for cleaner and often faster company-side job discovery
+- local deduplication and filtering so only relevant new jobs are emailed
 
-It is built for local use first. Run it on your Mac, keep a local seen-job history, and get emailed only new matches.
+The goal is simple: automate the repetitive part of job hunting so new openings reach you in near real time with less noise.
+
+## Why This Exists
+
+Manually checking LinkedIn every few minutes is slow, repetitive, and noisy. A lot of results are reposted, promoted, duplicated, or come from agencies and aggregators.
+
+This project was built to improve that workflow by:
+
+- checking for new jobs automatically
+- filtering low-signal postings out
+- keeping a local seen-job history
+- emailing only new matches
+- separating LinkedIn discovery from ATS discovery
+
+It is not a generic scraping demo. It is a working local automation tool built specifically to make job searching faster and more efficient.
 
 ## What It Does
 
-- Scrapes LinkedIn job search results for fresh full-time roles
-- Polls configured ATS company boards directly
+- Scrapes LinkedIn job search pages for fresh full-time roles
+- Polls configured ATS job boards directly
 - Filters out reposted and promoted LinkedIn jobs
-- Filters out agencies, staffing firms, and low-signal aggregator postings
-- Focuses on software engineering, data, platform, cloud, DevOps, and SRE-style roles
-- Tracks seen links and job signatures so you do not get the same job repeatedly
-- Emails only newly discovered matches
+- Filters out agencies, staffing firms, and junk aggregators
+- Focuses on software engineering, SDE, data, platform, cloud, DevOps, infrastructure, and SRE-style roles
+- Deduplicates by both job link and normalized job signature
+- Tracks seen jobs locally so the same posting is not emailed repeatedly
+- Emails only newly discovered jobs
+
+## Sources Covered
+
+### LinkedIn
+
+Used for broad discovery and real-time scanning of public job search results.
+
+### Direct ATS boards
+
+Used for cleaner company-side discovery. The current ATS pipeline supports public boards from:
+
+- Greenhouse
+- Ashby
+- Lever
+- SmartRecruiters
+- Workable
+
+This gives better coverage than relying on LinkedIn alone.
 
 ## How It Works
 
 ### LinkedIn flow
 
-`FinalScrapper.py` and `FinalScrapperIndia.py` use the shared LinkedIn collector in `jobnotifier/job_sources.py`.
+`FinalScrapper.py` and `FinalScrapperIndia.py` run the LinkedIn pipeline.
 
-The LinkedIn runner:
+Each cycle:
 
-1. Builds a search URL with your configured keywords and freshness window
-2. Downloads the search-result pages
-3. Extracts title, company, location, and link from each job card
-4. Rejects reposted or promoted cards
+1. Builds a LinkedIn search query using the configured keywords and freshness window
+2. Fetches the search-result pages
+3. Extracts title, company, location, and job link from each card
+4. Rejects reposted and promoted cards
 5. Applies title, company, and location filters
 6. Deduplicates results
-7. Compares them against local seen-job files
-8. Emails only jobs that have not been sent before
+7. Compares them against local seen-job history
+8. Emails only jobs that were not seen before
 
 ### ATS flow
 
-`ATSScrapper.py` and `ATSScrapperIndia.py` use the direct ATS collectors in `jobnotifier/job_sources.py`.
+`ATSScrapper.py` and `ATSScrapperIndia.py` run the ATS pipeline.
 
-The ATS runner:
+Each cycle:
 
-1. Loads target companies and board slugs from `config/ats_targets.json`
-2. Calls the public job-board endpoints for each configured ATS
-3. Parses raw jobs into one shared internal format
+1. Loads ATS target boards from `config/ats_targets.json`
+2. Calls the public job-board endpoints for each configured company
+3. Normalizes jobs into one shared internal format
 4. Applies freshness, title, company, and location filters
-5. Tracks repeated 404 targets and stops retrying permanently bad slugs after the configured threshold
-6. Deduplicates and compares against local seen-job files
-7. Emails only new jobs
+5. Tracks bad ATS targets that repeatedly 404
+6. Deduplicates results
+7. Compares them against local seen-job history
+8. Emails only new jobs
 
 ## Project Layout
 
@@ -85,7 +120,7 @@ The root files are small launchers so you can run:
 - `python3 FinalScrapperIndia.py`
 - `python3 ATSScrapperIndia.py`
 
-The real shared logic lives in `jobnotifier/`. That keeps the code maintainable and avoids copying the same filtering, emailing, deduping, and parsing logic into four separate scripts.
+The real shared logic lives in `jobnotifier/`. That keeps the code maintainable and avoids duplicating the same filtering, emailing, deduping, and parsing logic across multiple scripts.
 
 ## Supported Runners
 
@@ -99,49 +134,66 @@ The real shared logic lives in `jobnotifier/`. That keeps the code maintainable 
 - `FinalScrapperIndia.py`
 - `ATSScrapperIndia.py`
 
-The US/North America scripts are the default path. The India scripts are separate so you do not need to pass runtime flags just to switch markets.
+The US/North America scripts are the default path. India is kept separate so you can run it intentionally without changing flags every time.
 
-## Setup
-
-### 1. Clone the repo
+## Quick Start
 
 ```bash
 git clone https://github.com/jelb30/Linkedin-Job-Scrapper.git
 cd Linkedin-Job-Scrapper
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install -r requirements.txt
+cp .env.example .env
 ```
 
-### 2. Create and activate a virtual environment
+Then:
+
+1. Fill in `.env`
+2. Edit `config/ats_targets.json`
+3. Run a one-time test
+
+```bash
+python3 FinalScrapper.py --run-once
+python3 ATSScrapper.py --run-once
+```
+
+## Full Setup
+
+### 1. Create and activate a virtual environment
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 3. Install dependencies
+### 2. Install dependencies
 
 ```bash
 python3 -m pip install -r requirements.txt
 ```
 
-### 4. Create your `.env`
+### 3. Create your `.env`
 
 ```bash
 cp .env.example .env
 ```
 
-Then fill in at least:
+Fill in at least:
 
 - `EMAIL_USER`
 - `EMAIL_PASS`
 - `EMAIL_TO`
 
-### 5. Configure ATS targets
+`.env.example` is the tracked template for the repo. `.env` is your private local file and is ignored by git.
+
+### 4. Configure ATS targets
 
 Edit:
 
 - `config/ats_targets.json`
 
-This file controls which company ATS boards are checked. The ATS scraper does not magically scan every company on the internet. It only checks the boards you list there.
+This file controls which company ATS boards are checked. The ATS scraper only checks the company boards you explicitly list there.
 
 ## Environment Variables
 
@@ -151,7 +203,7 @@ Common settings in `.env`:
 - `EMAIL_PASS`: Gmail app password
 - `EMAIL_TO`: recipient email address
 - `EMAIL_TO_AS`: optional second recipient
-- `LINKEDIN_PAGES_TO_SCRAPE`: number of LinkedIn result pages per cycle
+- `LINKEDIN_PAGES_TO_SCRAPE`: number of LinkedIn pages per cycle
 - `CHECK_INTERVAL_SECONDS`: LinkedIn polling interval
 - `LINKEDIN_MAX_AGE_SECONDS`: LinkedIn freshness window
 - `ATS_CHECK_INTERVAL_SECONDS`: ATS polling interval
@@ -162,7 +214,7 @@ Common settings in `.env`:
 
 ### One-time test run
 
-Use this when you want to verify scraping, filters, and email without leaving the process running.
+Use this when you want to verify scraping, filtering, and email delivery without leaving the process running.
 
 ```bash
 python3 FinalScrapper.py --run-once
@@ -173,7 +225,7 @@ python3 ATSScrapperIndia.py --run-once
 
 ### Continuous mode
 
-Use this when you want the scraper to keep polling forever at the configured interval.
+Use this when you want the scrapers to keep polling forever using the configured intervals.
 
 ```bash
 python3 FinalScrapper.py
@@ -186,16 +238,16 @@ python3 ATSScrapperIndia.py
 
 The filters in `jobnotifier/job_filters.py` currently focus on:
 
-- software engineer / developer roles
+- software engineer and software developer roles
 - SDE roles
 - frontend, backend, and full-stack roles
-- data engineer / data analyst / data scientist roles
+- data engineer, data analyst, and data scientist roles
 - cloud, DevOps, infrastructure, and SRE roles
 
 The filters also reject:
 
 - internships and co-ops
-- obviously senior or managerial roles
+- clearly senior or managerial roles
 - agency and recruiter-style companies
 - known junk aggregators
 - reposted and promoted LinkedIn cards
@@ -215,9 +267,9 @@ These files are local runtime state and are ignored by git.
 1. Update `.env`
 2. Update `config/ats_targets.json`
 3. Run a one-time test
-4. Review the logs
+4. Review the logs and emails
 5. Start the continuous runners you want
-6. Let the seen-state files prevent duplicates over time
+6. Let the local state files prevent duplicates over time
 
 ## Troubleshooting
 
@@ -225,7 +277,7 @@ These files are local runtime state and are ignored by git.
 
 Check:
 
-- `config/ats_targets.json` has real board slugs
+- `config/ats_targets.json` contains real public board slugs
 - the boards are public and valid
 - your freshness window is not too strict
 - the jobs are in your allowed market
@@ -235,12 +287,12 @@ Check:
 Check:
 
 - `EMAIL_USER` is correct
-- `EMAIL_PASS` is a Gmail app password, not your normal Gmail password
+- `EMAIL_PASS` is a Gmail app password, not your regular Gmail password
 - the recipient fields are set correctly
 
 ### The script exits immediately
 
-That usually happens because you used `--run-once`. Remove it if you want the process to keep polling.
+That usually means you ran it with `--run-once`. Remove that flag if you want the process to keep polling.
 
 ## GitHub Desktop Workflow
 
