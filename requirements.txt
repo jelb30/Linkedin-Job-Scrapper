@@ -1,3 +1,4 @@
-dotenv
-bs4
+python-dotenv
 requests
+pytz
+beautifulsoup4

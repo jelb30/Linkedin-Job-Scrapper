@@ -1,0 +1,30 @@
+{
+  "greenhouse_boards": [
+    "openai", "stripe", "doordash", "cloudflare", "reddit", "robinhood", "coinbase", "github", "discord", 
+    "airbnb", "pinterest", "snapchat", "uber", "mongodb", "databricks", "okta", "twilio", "palantir", 
+    "rivian", "lucid", "duolingo", "zoom", "gusto", "chime", "plaid", "instacart", "nerdwallet", 
+    "flexport", "datadog", "confluent", "hashicorp", "elastic", "pagerduty", "fastly", "postman", 
+    "unity", "roblox", "ironclad", "brex", "benchling", "checkr", "tanium", "snyk", "auth0", 
+    "segment", "amplitude", "mixpanel", "braze", "loom", "fivetran", "dbtlabs", "starburst", 
+    "clickhouse", "snowflake", "verkada", "grammarly", "canva", "atlassian", "gitlab", "asana"
+  ],
+  "ashby_boards": [
+    "notion", "vanta", "retool", "midjourney", "anthropic", "perplexity", "glean", "jasper", "linear", 
+    "framer", "runway", "character", "together", "mistral", "pinecone", "weaviate", "langchain", 
+    "temporal", "graphite", "arc", "vercel", "supabase", "planetscale", "neon", "descript", 
+    "pika", "huggingface", "modal", "replicate", "sourcegraph"
+  ],
+  "lever_sites": [
+    "netflix", "yelp", "coursera", "twitch", "figma", "spotify", "lyft", "quora", "box", "clover", 
+    "paloaltonetworks", "servicenow", "intercom", "affirm", "upstart", "sofi", "marqeta", "nerdwallet", 
+    "outreach", "salesloft", "gong", "drift", "kargo", "stack-overflow", "medium"
+  ],
+  "smartrecruiters_companies": [
+    "smartrecruiters", "linkedin", "visa", "ubisoft", "twitter", "x", "bosch", "equinix", 
+    "square", "block", "pwc", "deloitte", "michelin", "skechers", "biogen"
+  ],
+  "workable_subdomains": [
+    "workable", "epicgames", "1kosmos", "behalf", "tile", "deliveroo", "impossiblefoods", 
+    "beyondmeat", "upwork", "fiverr", "getaround", "classpass", "farmdrop"
+  ]
+}
